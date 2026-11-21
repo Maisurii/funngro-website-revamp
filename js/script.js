@@ -75,16 +75,21 @@
     btn.addEventListener('click', function () {
       var open = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', String(!open));
+      clearTimeout(panel._faqTimer);
       if (open) {
         panel.style.height = panel.scrollHeight + 'px';
-        requestAnimationFrame(function () { panel.style.height = '0px'; });
-        var done = function () { panel.hidden = true; panel.removeEventListener('transitionend', done); };
-        if (reduceMotion) { panel.hidden = true; } else { panel.addEventListener('transitionend', done); }
+        void panel.offsetHeight; // commit the pixel height so the collapse animates
+        panel.style.height = '0px';
+        // Hide after the animation; a timer (not transitionend) so it always runs.
+        panel._faqTimer = setTimeout(function () {
+          if (btn.getAttribute('aria-expanded') === 'false') panel.hidden = true;
+        }, reduceMotion ? 0 : 380);
       } else {
         panel.hidden = false;
         panel.style.height = panel.scrollHeight + 'px';
-        var end = function () { panel.style.height = 'auto'; panel.removeEventListener('transitionend', end); };
-        if (reduceMotion) { panel.style.height = 'auto'; } else { panel.addEventListener('transitionend', end); }
+        panel._faqTimer = setTimeout(function () {
+          if (btn.getAttribute('aria-expanded') === 'true') panel.style.height = 'auto';
+        }, reduceMotion ? 0 : 380);
       }
     });
   });
